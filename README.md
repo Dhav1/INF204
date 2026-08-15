@@ -1,2 +1,2 @@
-# GRUPO INDIVIDUAL:
+# INDIVIDUAL:
 Dhavi Augusto Valentim - 27560
