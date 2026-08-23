@@ -1,36 +1,27 @@
-import React, { useState } from "react";
-import { Text, View, TouchableOpacity, StyleSheet } from "react-native";
+import React from "react";
+import { StyleSheet, Text, View } from "react-native";
 
-export default function Contador() {
-  const [contagem, setContagem] = useState(0);
+export default function App() {
+  const tarefas = [
+    { id: 1, descricao: "Estudar ES6+", concluida: true },
+    { id: 2, descricao: "Configurar ambiente Expo", concluida: true },
+    { id: 3, descricao: "Entender o funcionamento do JSX", concluida: false },
+    { id: 4, descricao: "Finalizar Roteiro de Pratica 02", concluida: false },
+  ];
 
   return (
     <View style={styles.container}>
+      
+      <Text style={styles.titulo}>Lista de Tarefas</Text>
 
-      <Text style={styles.titulo}>Contagem Atual:</Text>
-
-      <Text style={styles.numero}>{contagem}</Text>
-
-      <TouchableOpacity
-        style={styles.botao}
-        onPress={() => setContagem(contagem + 1)}
-      >
-        <Text style={styles.textoBotao}>Incrementar com +1</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={styles.botao}
-        onPress={() => setContagem(Math.max(0, contagem - 1))}
-      >
-        <Text style={styles.textoBotao}>Decrementar com -1</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={styles.botao}
-        onPress={() => setContagem(0)}
-      >
-        <Text style={styles.textoBotao}>Zerar contador</Text>
-      </TouchableOpacity>
+      {tarefas.map((tarefa) => (
+        <View key={tarefa.id} style={styles.card}>
+          <Text style={styles.textoTarefa}>
+            {tarefa.concluida ? "[OK] " : "[PENDENTE] "}
+            {tarefa.descricao}
+          </Text>
+        </View>
+      ))}
 
     </View>
   );
@@ -39,36 +30,31 @@ export default function Contador() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#ffffff",
+    backgroundColor: "#f5f5f5",
+    paddingTop: 50,
+    paddingHorizontal: 20,
   },
 
   titulo: {
-    fontSize: 20,
-    color: "#333333",
-  },
-
-  numero: {
-    fontSize: 48,
+    fontSize: 24,
     fontWeight: "bold",
-    color: "#4caf50",
     marginBottom: 20,
+    color: "#20325a",
   },
 
-  botao: {
-    backgroundColor: "#4caf50",
-    paddingVertical: 12,
-    paddingHorizontal: 25,
-    borderRadius: 10,
-    marginBottom: 15,
-    minWidth: 220,
-    alignItems: "center",
+  card: {
+    backgroundColor: "#ffffff",
+    padding: 15,
+    borderRadius: 8,
+    marginBottom: 10,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
 
-  textoBotao: {
-    color: "#ffffff",
+  textoTarefa: {
     fontSize: 16,
-    fontWeight: "bold",
+    color: "#333",
   },
 });
