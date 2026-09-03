@@ -12,12 +12,10 @@ export default function App() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-
+      
       <Text style={styles.titulo}>Perfis</Text>
-
-      {/* =========================
-          PERFIL 1
-      ========================== */}
+      
+      {/* PERFIL 1 */}
       <View style={styles.cartao}>
 
         <Image
@@ -34,8 +32,7 @@ export default function App() {
         <Text style={styles.profissao}>
           Dev
         </Text>
-
-        {/* Botão com múltiplos estilos */}
+        
         <TouchableOpacity
           style={[
             styles.botao,
@@ -49,7 +46,7 @@ export default function App() {
           </Text>
         </TouchableOpacity>
 
-        {/* Campo para alterar o nome */}
+        {/* Campo para alterar o nome*/} 
         <TextInput
           style={styles.input}
           placeholder="Alterar nome..."
@@ -59,9 +56,7 @@ export default function App() {
 
       </View>
 
-      {/* =========================
-          PERFIL 2
-      ========================== */}
+      {/* PERFIL 2 */}
       <View style={styles.cartao}>
 
         <Image
@@ -91,9 +86,7 @@ export default function App() {
 
       </View>
 
-      {/* =========================
-          PERFIL 3
-      ========================== */}
+      {/* PERFIL 3 */}
       <View style={styles.cartao}>
 
         <Image
