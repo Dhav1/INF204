@@ -1,28 +1,118 @@
-import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import React, { useState } from "react";
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  TextInput,
+} from "react-native";
 
-export default function App() {
-  const tarefas = [
-    { id: 1, descricao: "Estudar ES6+", concluida: true },
-    { id: 2, descricao: "Configurar ambiente Expo", concluida: true },
-    { id: 3, descricao: "Entender o funcionamento do JSX", concluida: false },
-    { id: 4, descricao: "Finalizar Roteiro de Pratica 02", concluida: false },
-  ];
+export default function UrnaEletronica() {
+  const [votosA, setVotosA] = useState(0);
+  const [votosB, setVotosB] = useState(0);
+  const [votosC, setVotosC] = useState(0);
+
+  const [nomeMesario, setNomeMesario] = useState("");
+
+  const totalVotos = votosA + votosB + votosC;
+
+  const porcentagemA =
+    totalVotos === 0 ? 0 : (votosA / totalVotos) * 100;
+
+  const porcentagemB =
+    totalVotos === 0 ? 0 : (votosB / totalVotos) * 100;
+
+  const porcentagemC =
+    totalVotos === 0 ? 0 : (votosC / totalVotos) * 100;
+
+  const zerarUrna = () => {
+    setVotosA(0);
+    setVotosB(0);
+    setVotosC(0);
+  };
 
   return (
     <View style={styles.container}>
-      
-      <Text style={styles.titulo}>Lista de Tarefas</Text>
+      <Text style={styles.titulo}>Painel de Votação</Text>
 
-      {tarefas.map((tarefa) => (
-        <View key={tarefa.id} style={styles.card}>
-          <Text style={styles.textoTarefa}>
-            {tarefa.concluida ? "[OK] " : "[PENDENTE] "}
-            {tarefa.descricao}
-          </Text>
-        </View>
-      ))}
+      {/* Campo mesário */}
+      <TextInput
+        style={styles.input}
+        placeholder="Digite o nome do mesário"
+        value={nomeMesario}
+        onChangeText={setNomeMesario}
+      />
 
+      <Text style={styles.mesario}>
+        Mesário atual: {nomeMesario}
+      </Text>
+
+      {/* Candidato A */}
+      <View style={styles.candidatoContainer}>
+        <Text style={styles.nomeCandidato}>
+          Candidato A: {votosA} votos
+        </Text>
+
+        <Text style={styles.porcentagem}>
+          {porcentagemA.toFixed(2)}%
+        </Text>
+
+        <TouchableOpacity
+          style={styles.botaoVotar}
+          onPress={() => setVotosA((prev) => prev + 1)}
+        >
+          <Text style={styles.textoBotao}>Votar em A</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Candidato B */}
+      <View style={styles.candidatoContainer}>
+        <Text style={styles.nomeCandidato}>
+          Candidato B: {votosB} votos
+        </Text>
+
+        <Text style={styles.porcentagem}>
+          {porcentagemB.toFixed(2)}%
+        </Text>
+
+        <TouchableOpacity
+          style={styles.botaoVotar}
+          onPress={() => setVotosB((prev) => prev + 1)}
+        >
+          <Text style={styles.textoBotao}>Votar em B</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Candidato C */}
+      <View style={styles.candidatoContainer}>
+        <Text style={styles.nomeCandidato}>
+          Candidato C: {votosC} votos
+        </Text>
+
+        <Text style={styles.porcentagem}>
+          {porcentagemC.toFixed(2)}%
+        </Text>
+
+        <TouchableOpacity
+          style={styles.botaoVotar}
+          onPress={() => setVotosC((prev) => prev + 1)}
+        >
+          <Text style={styles.textoBotao}>Votar em C</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.rodape}>
+        <Text style={styles.totalTexto}>
+          Total de Votos: {totalVotos}
+        </Text>
+
+        <TouchableOpacity
+          style={styles.botaoZerar}
+          onPress={zerarUrna}
+        >
+          <Text style={styles.textoBotao}>Zerar Urna</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -30,31 +120,87 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
-    paddingTop: 50,
-    paddingHorizontal: 20,
+    backgroundColor: "#F5F5F5",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
   },
 
   titulo: {
     fontSize: 24,
     fontWeight: "bold",
     marginBottom: 20,
-    color: "#20325a",
+    color: "#14325A",
   },
 
-  card: {
-    backgroundColor: "#ffffff",
+  input: {
+    width: "100%",
+    backgroundColor: "#FFF",
+    borderWidth: 1,
+    borderColor: "#CCC",
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    marginBottom: 8,
+  },
+
+  mesario: {
+    fontSize: 16,
+    marginBottom: 20,
+  },
+
+  candidatoContainer: {
+    width: "100%",
+    backgroundColor: "#FFF",
     padding: 15,
     borderRadius: 8,
     marginBottom: 10,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    alignItems: "center",
     elevation: 2,
   },
 
-  textoTarefa: {
+  nomeCandidato: {
+    fontSize: 18,
+    marginBottom: 5,
+  },
+
+  porcentagem: {
     fontSize: 16,
-    color: "#333",
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+
+  botaoVotar: {
+    backgroundColor: "#0064A0",
+    padding: 10,
+    borderRadius: 5,
+    width: "80%",
+    alignItems: "center",
+  },
+
+  textoBotao: {
+    color: "#FFF",
+    fontWeight: "bold",
+  },
+
+  rodape: {
+    marginTop: 20,
+    alignItems: "center",
+    width: "100%",
+    borderTopWidth: 1,
+    borderColor: "#CCC",
+    paddingTop: 20,
+  },
+
+  totalTexto: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 15,
+  },
+
+  botaoZerar: {
+    backgroundColor: "#808080",
+    padding: 15,
+    borderRadius: 5,
   },
 });
