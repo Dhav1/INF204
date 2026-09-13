@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { ScrollView } from "react-native";
 import {
   StyleSheet,
   Text,
@@ -47,6 +48,7 @@ export default function UrnaEletronica() {
         Mesário atual: {nomeMesario}
       </Text>
 
+      <ScrollView style={ { width: "100%" } } contentContainerStyle={{alignItems: "center" }}>
       {/* Candidato A */}
       <View style={styles.candidatoContainer}>
         <Text style={styles.nomeCandidato}>
@@ -113,6 +115,7 @@ export default function UrnaEletronica() {
           <Text style={styles.textoBotao}>Zerar Urna</Text>
         </TouchableOpacity>
       </View>
+    </ScrollView>
     </View>
   );
 }
