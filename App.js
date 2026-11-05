@@ -1,74 +1,123 @@
-import React, { useState } from "react";
-import { Text, View, TouchableOpacity, StyleSheet } from "react-native";
 
-export default function Contador() {
-  const [contagem, setContagem] = useState(0);
+import React, { useState, useEffect } from "react";
 
+import {
+  StyleSheet,
+  Text,
+  View,
+  FlatList,
+  ActivityIndicator,
+} from "react-native";
+
+import api from "./src/services/api";
+
+export default function App() {
+  const [utilizadores, setUtilizadores] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Busca os dados da API quando o componente é montado
+  useEffect(() => {
+    const buscarDados = async () => {
+      try {
+        // Os dados devolvidos ficam na propriedade "data" do Axios
+        const resposta = await api.get("/users");
+
+        setUtilizadores(resposta.data);
+      } catch (erro) {
+        console.error("Erro ao buscar dados:", erro.message);
+      } finally {
+        // Oculta o indicador de carregamento
+        // independentemente de ocorrer erro ou sucesso
+        setLoading(false);
+      }
+    };
+
+    buscarDados();
+  }, []);
+
+  // Exibe um indicador enquanto os dados são carregados
+  if (loading) {
+    return (
+      <View style={styles.centro}>
+        <ActivityIndicator
+          size="large"
+          color="#0000ff"
+        />
+
+        <Text>
+          A carregar utilizadores...
+        </Text>
+      </View>
+    );
+  }
+
+  // Interface principal
   return (
     <View style={styles.container}>
 
-      <Text style={styles.titulo}>Contagem Atual:</Text>
+      <Text style={styles.titulo}>
+        Lista de Utilizadores
+      </Text>
 
-      <Text style={styles.numero}>{contagem}</Text>
+      <FlatList
+        data={utilizadores}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
+          <View style={styles.cartao}>
 
-      <TouchableOpacity
-        style={styles.botao}
-        onPress={() => setContagem(contagem + 1)}
-      >
-        <Text style={styles.textoBotao}>Incrementar com +1</Text>
-      </TouchableOpacity>
+            <Text style={styles.nome}>
+              {item.name}
+            </Text>
 
-      <TouchableOpacity
-        style={styles.botao}
-        onPress={() => setContagem(Math.max(0, contagem - 1))}
-      >
-        <Text style={styles.textoBotao}>Decrementar com -1</Text>
-      </TouchableOpacity>
+            <Text style={styles.email}>
+              {item.email}
+            </Text>
 
-      <TouchableOpacity
-        style={styles.botao}
-        onPress={() => setContagem(0)}
-      >
-        <Text style={styles.textoBotao}>Zerar contador</Text>
-      </TouchableOpacity>
+          </View>
+        )}
+      />
 
     </View>
   );
 }
 
+// Estilização dos componentes
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#F5F5F5",
+    paddingTop: 50,
+    paddingHorizontal: 20,
+  },
+
+  centro: {
+    flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#ffffff",
   },
 
   titulo: {
-    fontSize: 20,
-    color: "#333333",
-  },
-
-  numero: {
-    fontSize: 48,
+    fontSize: 24,
     fontWeight: "bold",
-    color: "#4caf50",
     marginBottom: 20,
+    color: "#14325A",
   },
 
-  botao: {
-    backgroundColor: "#4caf50",
-    paddingVertical: 12,
-    paddingHorizontal: 25,
-    borderRadius: 10,
-    marginBottom: 15,
-    minWidth: 220,
-    alignItems: "center",
+  cartao: {
+    backgroundColor: "#FFF",
+    padding: 15,
+    marginBottom: 10,
+    borderRadius: 8,
+    elevation: 2,
   },
 
-  textoBotao: {
-    color: "#ffffff",
-    fontSize: 16,
+  nome: {
+    fontSize: 18,
     fontWeight: "bold",
+  },
+
+  email: {
+    color: "#666",
+    marginTop: 5,
   },
 });
