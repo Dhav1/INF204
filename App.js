@@ -1,140 +1,225 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
+
 import {
   StyleSheet,
   Text,
   View,
-  FlatList,
+  TextInput,
   TouchableOpacity,
+  FlatList,
 } from "react-native";
 
-// Array estático fora do componente para não ser recriado a cada render
-const contatosIniciais = [
-  { id: "1", nome: "Alice Silva", telefone: "(31) 99999-1111" },
-  { id: "2", nome: "Bruno Costa", telefone: "(31) 98888-2222" },
-  { id: "3", nome: "Carlos Souza", telefone: "(31) 97777-3333" },
-  { id: "4", nome: "Diana Rocha", telefone: "(31) 96666-4444" },
-  { id: "5", nome: "Eduardo Lima", telefone: "(31) 95555-5555" },
-  { id: "6", nome: "Fernanda Alves", telefone: "(31) 94444-6666" },
-  { id: "7", nome: "Gabriel Mendes", telefone: "(31) 93333-7777" },
-  { id: "8", nome: "Dhavi Valentim", telefone: "(31) 95252-5252" },
-  { id: "9", nome: "Samuel Matins", telefone: "(33) 95252-5252" },
-  { id: "10", nome: "Matias Castro", telefone: "(32) 95252-5252" },
-  { id: "11", nome: "Rayane dos Santos", telefone: "(21) 95252-5252" },
-  { id: "12", nome: "Aloísia Cruz", telefone: "(44) 95252-5252" },
-  { id: "13", nome: "Valéria Cristina", telefone: "(32) 95252-1000" },
-  { id: "14", nome: "Benjamin Soares", telefone: "(71) 95252-5252" },
-  { id: "15", nome: "Vinícius Daniel", telefone: "(51) 95252-5252" },
-];
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export default function Agenda() {
-  const [contatos, setContatos] = useState(contatosIniciais);
-  const [carregando, setCarregando] = useState(false);
-  const [carregandoMais, setCarregandoMais] = useState(false);
+import {
+  SQLiteProvider,
+  useSQLiteContext,
+} from "expo-sqlite";
 
-  const atualizarAgenda = () => {
-    setCarregando(true);
+// Função de inicialização das tabelas no banco de dados
+const iniciarBanco = async (db) => {
+  await db.execAsync("PRAGMA journal_mode = WAL;");
 
-    setTimeout(() => {
-      setContatos(contatosIniciais);
-      setCarregando(false);
-    }, 2000);
+  await db.execAsync(`
+    CREATE TABLE IF NOT EXISTS tarefas (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      descricao TEXT NOT NULL,
+      concluida INTEGER DEFAULT 0
+    );
+  `);
+
+  console.log("Base de Dados inicializada!");
+};
+
+// Componente principal
+export default function App() {
+  return (
+    <SQLiteProvider
+      databaseName="app-database.db"
+      onInit={iniciarBanco}
+    >
+      <EcraPrincipal />
+    </SQLiteProvider>
+  );
+}
+
+// Tela principal do aplicativo
+function EcraPrincipal() {
+  // Acesso à instância do banco de dados
+  const db = useSQLiteContext();
+
+  const [nomeUsuario, setNomeUsuario] = useState("Visitante");
+  const [tarefas, setTarefas] = useState([]);
+  const [novaTarefa, setNovaTarefa] = useState("");
+
+  // Carrega os dados quando a tela é aberta
+  useEffect(() => {
+    carregarPreferencias();
+    carregarTarefas();
+  }, []);
+
+  // Leitura assíncrona do AsyncStorage
+  const carregarPreferencias = async () => {
+    try {
+      const nomeSalvo = await AsyncStorage.getItem(
+        "@AppTarefas:Nome"
+      );
+
+      if (nomeSalvo) {
+        setNomeUsuario(nomeSalvo);
+      }
+    } catch (erro) {
+      console.error("Erro ao carregar preferências:", erro);
+    }
   };
 
-  // Rolagem Infinita
-  const carregarMaisContatos = () => {
-    if (carregandoMais) {
+  // Gravação assíncrona no AsyncStorage
+  const salvarNome = async () => {
+    try {
+      const novoNome = "Estudante INF204";
+
+      await AsyncStorage.setItem(
+        "@AppTarefas:Nome",
+        novoNome
+      );
+
+      setNomeUsuario(novoNome);
+    } catch (erro) {
+      console.error("Erro ao salvar nome:", erro);
+    }
+  };
+
+  // Leitura SQL (SELECT)
+  const carregarTarefas = async () => {
+    try {
+      const resultados = await db.getAllAsync(
+        "SELECT * FROM tarefas ORDER BY id DESC;"
+      );
+
+      setTarefas(resultados);
+    } catch (erro) {
+      console.error("Falha ao ler dados:", erro);
+    }
+  };
+
+  // Inserção SQL (INSERT)
+  const adicionarTarefa = async () => {
+    if (novaTarefa.trim() === "") {
       return;
     }
 
-    setCarregandoMais(true);
+    try {
+      await db.runAsync(
+        "INSERT INTO tarefas (descricao, concluida) VALUES (?, ?);",
+        [novaTarefa.trim(), 0]
+      );
 
-    setTimeout(() => {
-      setContatos((contatosAtuais) => {
-        const proximoId = contatosAtuais.length + 1;
+      setNovaTarefa("");
 
-        const novosContatos = [
-          {
-            id: String(proximoId),
-            nome: `Contato Fictício ${proximoId}`,
-            telefone: "(31) 90000-0000",
-          },
-          {
-            id: String(proximoId + 1),
-            nome: `Contato Fictício ${proximoId + 1}`,
-            telefone: "(31) 91111-1111",
-          },
-          {
-            id: String(proximoId + 2),
-            nome: `Contato Fictício ${proximoId + 2}`,
-            telefone: "(31) 92222-2222",
-          },
-        ];
-
-        return [...contatosAtuais, ...novosContatos];
-      });
-
-      setCarregandoMais(false);
-    }, 500);
+      carregarTarefas();
+    } catch (erro) {
+      console.error("Erro no INSERT:", erro);
+    }
   };
 
-  const renderizarContato = ({ item }) => (
-    <View style={styles.cardContato}>
-      <Text style={styles.nomeText}>{item.nome}</Text>
-      <Text style={styles.telefoneText}>{item.telefone}</Text>
-    </View>
-  );
+  // Atualização SQL (UPDATE)
+  const alternarStatus = async (id, statusAtual) => {
+    try {
+      const novoStatus = statusAtual === 1 ? 0 : 1;
 
-  const renderizarSeparador = () => (
-    <View style={styles.separador} />
-  );
+      await db.runAsync(
+        "UPDATE tarefas SET concluida = ? WHERE id = ?;",
+        [novoStatus, id]
+      );
 
-  const renderizarVazio = () => (
-    <View style={styles.containerVazio}>
-      <Text style={styles.textoVazio}>Agenda Vazia.</Text>
-    </View>
-  );
+      carregarTarefas();
+    } catch (erro) {
+      console.error("Erro ao atualizar tarefa:", erro);
+    }
+  };
 
+  // Interface visual
   return (
     <View style={styles.container}>
+
+      {/* Cabeçalho */}
       <View style={styles.cabecalho}>
-        <Text style={styles.titulo}>Minha Agenda</Text>
+        <Text style={styles.titulo}>
+          Olá, {nomeUsuario}!
+        </Text>
 
         <TouchableOpacity
-          style={styles.botaoLimpar}
-          onPress={() => setContatos([])}
+          style={styles.botaoAcao}
+          onPress={salvarNome}
         >
-          <Text style={styles.textoBotao}>Limpar Tudo</Text>
+          <Text style={styles.textoBotao}>
+            Mudar Nome
+          </Text>
         </TouchableOpacity>
       </View>
 
+      {/* Campo para adicionar tarefas */}
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={styles.input}
+          placeholder="Nova tarefa..."
+          value={novaTarefa}
+          onChangeText={setNovaTarefa}
+        />
+
+        <TouchableOpacity
+          style={styles.botaoAdd}
+          onPress={adicionarTarefa}
+        >
+          <Text style={styles.textoBotao}>
+            Add
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Lista de tarefas */}
       <FlatList
-        data={contatos}
-        keyExtractor={(item) => item.id}
-        renderItem={renderizarContato}
-        ItemSeparatorComponent={renderizarSeparador}
-        ListEmptyComponent={renderizarVazio}
-        refreshing={carregando}
-        onRefresh={atualizarAgenda}
-        onEndReached={carregarMaisContatos}
-        onEndReachedThreshold={0.5}
+        data={tarefas}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            style={styles.cartao}
+            onPress={() =>
+              alternarStatus(item.id, item.concluida)
+            }
+          >
+            <Text
+              style={[
+                styles.textoTarefa,
+                item.concluida === 1 &&
+                  styles.textoConcluido,
+              ]}
+            >
+              {item.descricao}
+            </Text>
+          </TouchableOpacity>
+        )}
       />
+
     </View>
   );
 }
 
+// Estilização dos componentes
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F5F5F5",
     paddingTop: 50,
+    paddingHorizontal: 20,
   },
 
   cabecalho: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 20,
-    marginBottom: 15,
+    marginBottom: 20,
   },
 
   titulo: {
@@ -143,10 +228,32 @@ const styles = StyleSheet.create({
     color: "#14325A",
   },
 
-  botaoLimpar: {
-    backgroundColor: "#D32F2F",
+  botaoAcao: {
+    backgroundColor: "#808080",
     padding: 10,
     borderRadius: 8,
+  },
+
+  inputContainer: {
+    flexDirection: "row",
+    marginBottom: 20,
+  },
+
+  input: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: "#CCC",
+    borderRadius: 8,
+    padding: 10,
+    backgroundColor: "#FFF",
+  },
+
+  botaoAdd: {
+    backgroundColor: "#0064A0",
+    padding: 15,
+    borderRadius: 8,
+    marginLeft: 10,
+    justifyContent: "center",
   },
 
   textoBotao: {
@@ -154,36 +261,21 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 
-  cardContato: {
-    padding: 20,
+  cartao: {
     backgroundColor: "#FFF",
+    padding: 15,
+    marginBottom: 10,
+    borderRadius: 8,
+    elevation: 2,
   },
 
-  nomeText: {
+  textoTarefa: {
     fontSize: 18,
-    fontWeight: "bold",
     color: "#333",
   },
 
-  telefoneText: {
-    fontSize: 16,
-    color: "#666",
-    marginTop: 5,
-  },
-
-  separador: {
-    height: 1,
-    backgroundColor: "#E0E0E0",
-  },
-
-  containerVazio: {
-    alignItems: "center",
-    marginTop: 50,
-  },
-
-  textoVazio: {
-    fontSize: 18,
-    color: "#808080",
-    fontStyle: "italic",
+  textoConcluido: {
+    textDecorationLine: "line-through",
+    color: "#999",
   },
 });
